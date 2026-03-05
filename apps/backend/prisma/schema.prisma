@@ -14,9 +14,44 @@ datasource db {
 }
 
 
-model test { 
- uid String @id @default(cuid())
- name String 
- class String
- email String
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password String
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
+
+  attendance Attendance[]
+}
+
+model Course {
+  id       String   @id @default(uuid())
+  name     String
+  users    User[]
+  subjects Subject[]
+}
+
+model Subject {
+  id       String   @id @default(uuid())
+  name     String
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id])
+
+  attendance Attendance[]
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  userId    String
+  subjectId String
+  date      DateTime
+  status    String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([userId, subjectId, date])
 }

@@ -1,8 +1,8 @@
 import {Module} from "@nestjs/common"
-
+import MarkAttendanceService from "./markAttendance.service"
 @Module({
     controllers : [],
-    providers : [],
+    providers : [MarkAttendanceService],
     exports : []
 })
 

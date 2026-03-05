@@ -1,6 +1,6 @@
 import * as Joi from "joi"
 
 export const envSchima = Joi.object({
-    DatabaseUrl: Joi.string().required()
+    DATABASE_URL: Joi.string().required()
 })
 
