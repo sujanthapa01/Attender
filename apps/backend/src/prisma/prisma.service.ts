@@ -1,29 +1,33 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common"
-import { PrismaPostgresAdapter } from "@prisma/adapter-ppg"
-import { PrismaClient } from "../../generated/prisma/client"
-
+import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { PrismaPostgresAdapter } from "@prisma/adapter-ppg";
+import { PrismaClient } from "../../generated/prisma/client";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
+export default class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy {
 
-export default class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-    constructor() {
+  constructor(private configService: ConfigService) {
 
-        const connectionString = ""! as string
+    const connectionString = configService.get<string>("DATABASE_URL");
 
-        if (!connectionString) {
-            console.log("DBURL is missing in PrismaService")
-            return
-        }
-
-        const adapter = new PrismaPostgresAdapter({ connectionString })
-        super({ adapter })
+    if (!connectionString) {
+      throw new Error("DATABASE_URL is missing in .env");
     }
 
-    async onModuleInit() {
-        await this.$connect()
-    }
+    const adapter = new PrismaPostgresAdapter({ connectionString });
 
-    async onModuleDestroy() {
-        await this.$disconnect()
-    }
+    super({
+      adapter,
+    });
+  }
+
+  async onModuleInit() {
+    await this.$connect();
+  }
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+  }
 }
