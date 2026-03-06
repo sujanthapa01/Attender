@@ -1,0 +1,12 @@
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "SujanThapa",
+  "email": "sujanthapa4001@gmail.com",
+  "password": "sujanthapa2005",
+  "courseId": "c1"
+}
+
+
+# GET http://localhost:3000/api/auth/greet

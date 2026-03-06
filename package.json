@@ -1,5 +1,5 @@
 {
-  "name": "Attender",
+  "name": "attender",
   "private": true,
   "scripts": {
     "build": "turbo run build",

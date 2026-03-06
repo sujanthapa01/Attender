@@ -4,13 +4,13 @@ import { TUser } from "./types/auth.type"
 import { hashPassword, comparePassword } from "./utils/password.util"
 import { generateJwtToken } from "./utils/jwt.util"
 import { JwtService } from "@nestjs/jwt"
+// import {User} from "../../generated/prisma"
 
 type T = {
     email: string;
     courseId: string;
     name: string;
     password: string;
-    id: string;
     createdAt: Date;
 }
 
@@ -18,23 +18,34 @@ type T = {
 export default class AuthService {
     constructor(private db: PrismaService, private jwtService: JwtService) { }
 
-    async create(data: TUser): Promise<{ message: string, user?: T }> {
+    async create(
+        data: any
+    ): Promise<{
+        message: string
+        user?: {
+            id: string
+            name: string
+            email: string
+            courseId: string
+            createdAt: Date
+        }
+    }> {
 
         const { email, courseId, name, password } = data
 
         try {
 
-            const alreadyExist = await this.db.user.findFirst({ where: { email } })
+            const alreadyExist = await this.db.user.findUnique({
+                where: { email }
+            })
 
             if (alreadyExist) {
                 return {
-                    message: `${email} already registred`
-
+                    message: `${email} already registered`
                 }
             }
 
-            const hash = await hashPassword(password);
-
+            const hash = await hashPassword(password)
 
             const user = await this.db.user.create({
                 data: {
@@ -42,18 +53,25 @@ export default class AuthService {
                     email,
                     password: hash,
                     courseId
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    courseId: true,
+                    createdAt: true
                 }
             })
 
             return {
-                message: `${email} registred sucessfully`,
+                message: `${email} registered successfully`,
                 user
             }
 
         } catch (error) {
-            throw new InternalServerErrorException('internal server error', error)
+            console.error(error)
+            throw new InternalServerErrorException("Internal server error")
         }
-
     }
 
     async login(email: string, password: string) {
@@ -75,7 +93,7 @@ export default class AuthService {
 
 
         } catch (error) {
-            throw new InternalServerErrorException('Internal Server Error', error)
+            throw new InternalServerErrorException(error.message)
         }
     }
 
