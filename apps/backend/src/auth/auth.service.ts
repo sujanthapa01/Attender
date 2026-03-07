@@ -1,16 +1,8 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common"
+import { Injectable, InternalServerErrorException, UnauthorizedException, BadRequestException } from "@nestjs/common"
 import { PrismaService } from "src/prisma/prisma.service"
 import { hashPassword, comparePassword } from "./utils/password.util"
 import { generateJwtToken } from "./utils/jwt.util"
 import { JwtService } from "@nestjs/jwt"
-
-type T = {
-    email: string;
-    courseId: string;
-    name: string;
-    password: string;
-    createdAt: Date;
-}
 
 @Injectable()
 export class AuthService {  
@@ -29,6 +21,18 @@ export class AuthService {
         const { email, courseId, name, password } = data
 
         try {
+            if (!email || !password || !name || !courseId) {
+                throw new BadRequestException("Missing required fields: email, password, name, courseId")
+            }
+
+            const courseExists = await this.db.course.findUnique({
+                where: { id: courseId }
+            })
+
+            if (!courseExists) {
+                throw new BadRequestException(`Course with ID "${courseId}" does not exist`)
+            }
+
             const alreadyExist = await this.db.user.findUnique({
                 where: { email }
             })
@@ -63,36 +67,58 @@ export class AuthService {
             }
 
         } catch (error) {
-            console.error(error)
-            throw new InternalServerErrorException("Internal server error")
+            console.error("Registration error:", error)
+            if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
+                throw error
+            }
+            throw new InternalServerErrorException("Registration failed")
         }
     }
 
-    async login(email: string, password: string) {  // ✅ Added return type
+    async login(email: string, password: string): Promise<{
+        message: string
+        token: string  // ✅ Added
+        user: {
+            name: string
+            email: string
+        }
+    }> {
         try {
-            const found = await this.db.user.findFirst({ where: { email } })
+         
+            if (!email || !password) {
+                throw new BadRequestException("Email and password are required")
+            }
+
+            const found = await this.db.user.findFirst({ 
+                where: { email } 
+            })
 
             if (!found) {
-                throw new UnauthorizedException(`${email} not found`)
+                throw new UnauthorizedException(`User with email "${email}" not found`)
             }
 
             const checkPass = await comparePassword(password, found.password)
 
             if (!checkPass) {
-                throw new UnauthorizedException('Wrong password!')
+                throw new UnauthorizedException('Invalid password')
             }
 
-            // ✅ FIX: Return the token!
-            const token = generateJwtToken({ email }, this.jwtService)
+            const token = await generateJwtToken({ email }, this.jwtService)  // ✅ Added await
             return {
                 message: "Login successful",
-                token
+                token: token.accessToken,  // ✅ Return token
+                user: {
+                    name: found.name,
+                    email: found.email
+                }
             }
 
         } catch (error) {
-            // ✅ FIX: Check if error has message property
-            const message = error.message || "Login failed"
-            throw new InternalServerErrorException(message)
+            console.error("Login error:", error)
+            if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
+                throw error
+            }
+            throw new InternalServerErrorException("Login failed")
         }
     }
 }
