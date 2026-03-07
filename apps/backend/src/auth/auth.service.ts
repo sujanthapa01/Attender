@@ -1,10 +1,8 @@
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common"
-import PrismaService from "src/prisma/prisma.service"
-import { TUser } from "./types/auth.type"
+import { PrismaService } from "src/prisma/prisma.service"
 import { hashPassword, comparePassword } from "./utils/password.util"
 import { generateJwtToken } from "./utils/jwt.util"
 import { JwtService } from "@nestjs/jwt"
-// import {User} from "../../generated/prisma"
 
 type T = {
     email: string;
@@ -15,12 +13,10 @@ type T = {
 }
 
 @Injectable()
-export default class AuthService {
+export class AuthService {  
     constructor(private db: PrismaService, private jwtService: JwtService) { }
 
-    async create(
-        data: any
-    ): Promise<{
+    async create(data: any): Promise<{
         message: string
         user?: {
             id: string
@@ -30,11 +26,9 @@ export default class AuthService {
             createdAt: Date
         }
     }> {
-
         const { email, courseId, name, password } = data
 
         try {
-
             const alreadyExist = await this.db.user.findUnique({
                 where: { email }
             })
@@ -74,10 +68,9 @@ export default class AuthService {
         }
     }
 
-    async login(email: string, password: string) {
-
+    async login(email: string, password: string) {  // ✅ Added return type
         try {
-            const found: T | null = await this.db.user.findFirst({ where: { email } })
+            const found = await this.db.user.findFirst({ where: { email } })
 
             if (!found) {
                 throw new UnauthorizedException(`${email} not found`)
@@ -86,15 +79,20 @@ export default class AuthService {
             const checkPass = await comparePassword(password, found.password)
 
             if (!checkPass) {
-                throw new UnauthorizedException('wrong password!')
+                throw new UnauthorizedException('Wrong password!')
             }
 
-            generateJwtToken({ email }, this.jwtService)
-
+            // ✅ FIX: Return the token!
+            const token = generateJwtToken({ email }, this.jwtService)
+            return {
+                message: "Login successful",
+                token
+            }
 
         } catch (error) {
-            throw new InternalServerErrorException(error.message)
+            // ✅ FIX: Check if error has message property
+            const message = error.message || "Login failed"
+            throw new InternalServerErrorException(message)
         }
     }
-
 }

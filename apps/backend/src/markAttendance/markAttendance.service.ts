@@ -1,10 +1,10 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
-import PrismaService from "../prisma/prisma.service"
+import {PrismaService} from "../prisma/prisma.service"
 
 
 @Injectable()
-export default class MarkAttendance {
+export class MarkAttendance {
     constructor(private db: PrismaService, private configService: ConfigService) { }
 
 

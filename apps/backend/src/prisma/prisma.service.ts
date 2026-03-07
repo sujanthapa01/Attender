@@ -4,22 +4,22 @@ import { PrismaClient } from "../../generated/prisma/client";
 import { ConfigService } from "@nestjs/config";
 
 @Injectable()
-export default class PrismaService
+export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy {
 
   constructor(private configService: ConfigService) {
 
-    const connectionString = configService.get<string>("DATABASE_URL");
+    const connectionString = configService.get<string>('DATABASE_URL');
 
-    // console.log(configService)
+    console.log(connectionString)
 
     if (!connectionString) {
       throw new Error("DATABASE_URL is missing in .env");
     }
 
     const adapter = new PrismaPostgresAdapter({ connectionString });
-
+    console.log(adapter)
     super({
       adapter,
     });

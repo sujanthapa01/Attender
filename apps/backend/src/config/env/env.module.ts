@@ -13,4 +13,4 @@ import {envSchima} from "./env.validation"
 })
 
 
-export default class EnvModule {}
+export class EnvModule {}
