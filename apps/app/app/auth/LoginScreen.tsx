@@ -10,8 +10,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
+import { router } from 'expo-router';
 
-export default function LoginScreen({ navigation }: any) {  // ✅ default export
+export default function LoginScreen() {  // ✅ default export
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,7 +83,7 @@ export default function LoginScreen({ navigation }: any) {  // ✅ default expor
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
+      <TouchableOpacity onPress={() => router.push('/auth/RegisterScreen')}>
         <Text style={styles.link}>Don't have an account? Register</Text>
       </TouchableOpacity>
     </View>

@@ -15,6 +15,8 @@ export class AuthController {
 @IsPublic()
     @Post('login')
     async login(@Body() userLoginDto: UserLoginDto) {
+
+        console.log(userLoginDto.email, userLoginDto.password)
         return this.auth.login(userLoginDto.email, userLoginDto.password)
     }
 

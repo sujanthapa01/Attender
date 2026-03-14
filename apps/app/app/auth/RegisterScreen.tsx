@@ -1,8 +1,9 @@
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
 import { useState } from 'react';
 import {useAuth} from "../../context/AuthContext"
+import {router} from "expo-router"
 
-export const RegisterScreen = ({ navigation }: any) => {
+export default function RegisterScreen({ navigation }: any){
     const { register } = useAuth();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -15,6 +16,13 @@ export const RegisterScreen = ({ navigation }: any) => {
             Alert.alert('Error', 'Please fill in all fields');
             return;
         }
+
+        console.log({
+            "name": name,
+            "email" : email,
+          "password" : password,
+          "courseId" : courseId
+        })
 
         try {
             setLoading(true);
@@ -73,7 +81,7 @@ export const RegisterScreen = ({ navigation }: any) => {
                 <Text style={styles.buttonText}>{loading ? 'Registering...' : 'Register'}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity onPress={() => router.push('/auth/LoginScreen')}>
                 <Text style={styles.link}>Already have an account? Login</Text>
             </TouchableOpacity>
         </View>

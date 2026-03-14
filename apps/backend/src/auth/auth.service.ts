@@ -77,8 +77,9 @@ export class AuthService {
 
     async login(email: string, password: string): Promise<{
         message: string
-        token: string  // ✅ Added
+        token: string  
         user: {
+            id: string
             name: string
             email: string
         }
@@ -108,6 +109,7 @@ export class AuthService {
                 message: "Login successful",
                 token: token.accessToken,  // ✅ Return token
                 user: {
+                    id: found.id,
                     name: found.name,
                     email: found.email
                 }

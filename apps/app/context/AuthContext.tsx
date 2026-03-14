@@ -1,131 +1,174 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
 
 interface AuthContextType {
   isLoggedIn: boolean;
-  user: { name: string; email: string } | null;
+  user: User | null;
   token: string | null;
+  isLoading: boolean;
+
   login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>; 
+  logout: () => Promise<void>;
+
   register: (
-    name: string, 
+    name: string,
     email: string,
     password: string,
-    courseId: string,
+    courseId: string
   ) => Promise<void>;
-  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // 🔹 Restore session from SecureStore
   useEffect(() => {
-    bootstrapAsync();
+    const restoreSession = async () => {
+      try {
+        const savedUser = await SecureStore.getItemAsync("userData");
+        const savedToken = await SecureStore.getItemAsync("userToken");
+
+        if (savedUser && savedToken) {
+          const parsedUser: User = JSON.parse(savedUser);
+
+          setUser(parsedUser);
+          setToken(savedToken);
+          setIsLoggedIn(true);
+
+          console.log("Session restored:", parsedUser);
+        }
+      } catch (error) {
+        console.log("Failed to restore session:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    restoreSession();
   }, []);
 
-  const bootstrapAsync = async () => {
-    try {
-      const savedUser = await AsyncStorage.getItem("userData");
-      const savedToken = await AsyncStorage.getItem("userToken");
-
-      if (savedToken && savedUser) {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-        setIsLoggedIn(true);
-      }
-    } catch (err) {
-      console.log("Failed to restore token", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // 🔹 Login
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
-      }
+      const response = await fetch(
+        "http://192.168.29.223:3000/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const data = await response.json();
 
-      // ✅ Convert user object to string
-      await AsyncStorage.setItem("userToken", data.token);
-      await AsyncStorage.setItem("userData", JSON.stringify(data.user));
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      await SecureStore.setItemAsync("userToken", data.token);
+      await SecureStore.setItemAsync("userData", JSON.stringify(data.user));
 
       setToken(data.token);
       setUser(data.user);
       setIsLoggedIn(true);
-    } catch (err: any) {
-      console.log("Login error:", err.message);
-      throw err;
+
+      console.log("Login success:", data.user);
+    } catch (error: any) {
+      console.log("Login error:", error.message);
+      throw error;
     }
   };
 
+  // 🔹 Register
   const register = async (
     name: string,
     email: string,
     password: string,
-    courseId: string,
+    courseId: string
   ) => {
     try {
-      const response = await fetch("http://localhost:3000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, courseId }),
-      });
+      const response = await fetch(
+        "http://192.168.29.223:3000/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            courseId,
+          }),
+        }
+      );
+
+      const data = await response.json();
 
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || "Registration failed");
       }
 
-      const data = await response.json();
-      
-     
+      console.log("Registration success");
+
+      // auto login
       await login(email, password);
-    } catch (err: any) {
-      console.log("Registration error:", err.message);
-      throw err;
+    } catch (error: any) {
+      console.log("Registration error:", error.message);
+      throw error;
     }
   };
 
+  // 🔹 Logout
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem("userToken");
-      await AsyncStorage.removeItem("userData");
+      await SecureStore.deleteItemAsync("userToken");
+      await SecureStore.deleteItemAsync("userData");
 
-      setToken(null);  
-      setUser(null);   
+      setToken(null);
+      setUser(null);
       setIsLoggedIn(false);
-    } catch (err: any) {
-      console.log("Logout error:", err.message);
-      throw new Error("Logout failed");
+
+      console.log("User logged out");
+    } catch (error) {
+      console.log("Logout error:", error);
     }
   };
 
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, isLoading, token, user, login, register, logout }}
+      value={{
+        user,
+        token,
+        isLoggedIn,
+        isLoading,
+        login,
+        logout,
+        register,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
 
+// 🔹 Hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error("useAuth must be used within AuthProvider");
   }

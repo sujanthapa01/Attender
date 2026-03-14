@@ -1,27 +1,15 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
-import {PrismaService} from "../prisma/prisma.service"
+import { PrismaService } from "../prisma/prisma.service"
+import { markAttendance } from "./helpers/functions"
 
 
 @Injectable()
 export class MarkAttendance {
     constructor(private db: PrismaService, private configService: ConfigService) { }
 
-
-    async markAttendance(userId: string, status: "present" | "absent") {
-        try {
-
-            // const res = this.db.attendance.create({
-            //     data : {
-            //         userId : userId
-            //     }
-            // })
-
-        } catch (error) {
-            throw new InternalServerErrorException("Internal Server Error", error)
-        }
-
+    async mark(userId: string, subjectId: string, status: 'present' | 'absent') {
+       return markAttendance(userId, subjectId, status, this.db)
     }
-
 
 }

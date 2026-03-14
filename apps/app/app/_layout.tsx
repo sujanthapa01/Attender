@@ -1,14 +1,14 @@
-import { Stack } from 'expo-router';
-import { AuthProvider, useAuth } from '../context/AuthContext';
-import { ActivityIndicator, View } from 'react-native';
-
+import { Stack } from "expo-router";
+import { AuthProvider, useAuth } from "../context/AuthContext";
+import { Text, View } from "react-native";
+import { AttendanceProvider } from "../context/AttendanceContext";
 function RootLayoutNav() {
   const { isLoggedIn, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#6366f1" />
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading... </Text>
       </View>
     );
   }
@@ -29,7 +29,9 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <AttendanceProvider>
+          <RootLayoutNav />
+      </AttendanceProvider>
     </AuthProvider>
   );
 }

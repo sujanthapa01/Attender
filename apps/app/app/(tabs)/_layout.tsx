@@ -22,7 +22,7 @@ export default function TabsLayout() {
         },
       }}
     >
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="index"
         options={{
           title: "Calculate",
@@ -30,7 +30,7 @@ export default function TabsLayout() {
             <Ionicons name="calculator" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
 
 <Tabs.Screen
 name="mark"
