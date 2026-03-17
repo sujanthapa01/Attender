@@ -14,24 +14,16 @@ export class AuthService {
             id: string
             name: string
             email: string
-            courseId: string
             createdAt: Date
         }
     }> {
-        const { email, courseId, name, password } = data
+        const { email, name, password } = data
 
         try {
-            if (!email || !password || !name || !courseId) {
-                throw new BadRequestException("Missing required fields: email, password, name, courseId")
+            if (!email || !password || !name ) {
+                throw new BadRequestException("Missing required fields: email, password, name")
             }
 
-            const courseExists = await this.db.course.findUnique({
-                where: { id: courseId }
-            })
-
-            if (!courseExists) {
-                throw new BadRequestException(`Course with ID "${courseId}" does not exist`)
-            }
 
             const alreadyExist = await this.db.user.findUnique({
                 where: { email }
@@ -50,13 +42,11 @@ export class AuthService {
                     name,
                     email,
                     password: hash,
-                    courseId
                 },
                 select: {
                     id: true,
                     name: true,
                     email: true,
-                    courseId: true,
                     createdAt: true
                 }
             })
@@ -104,10 +94,10 @@ export class AuthService {
                 throw new UnauthorizedException('Invalid password')
             }
 
-            const token = await generateJwtToken({ email }, this.jwtService)  // ✅ Added await
+            const token = await generateJwtToken({ email }, this.jwtService)  
             return {
                 message: "Login successful",
-                token: token.accessToken,  // ✅ Return token
+                token: token.accessToken, 
                 user: {
                     id: found.id,
                     name: found.name,
