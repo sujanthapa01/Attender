@@ -20,7 +20,6 @@ interface AuthContextType {
     name: string,
     email: string,
     password: string,
-    courseId: string
   ) => Promise<void>;
 }
 
@@ -32,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🔹 Restore session from SecureStore
+  // Restore session from SecureStore
   useEffect(() => {
     const restoreSession = async () => {
       try {
@@ -58,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     restoreSession();
   }, []);
 
-  // 🔹 Login
+
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch(
@@ -69,7 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ email, password }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -92,12 +91,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // 🔹 Register
+
   const register = async (
     name: string,
     email: string,
-    password: string,
-    courseId: string
+    password: string
   ) => {
     try {
       const response = await fetch(
@@ -111,9 +109,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             name,
             email,
             password,
-            courseId,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -124,7 +121,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log("Registration success");
 
-      // auto login
+
       await login(email, password);
     } catch (error: any) {
       console.log("Registration error:", error.message);
@@ -132,7 +129,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // 🔹 Logout
+
   const logout = async () => {
     try {
       await SecureStore.deleteItemAsync("userToken");
@@ -165,7 +162,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// 🔹 Hook
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
 

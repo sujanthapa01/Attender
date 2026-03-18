@@ -12,7 +12,7 @@ export default function MarkScreen() {
   }, []);
 
   return (
-    <View style={style.main}>
+ <View style={style.main}>
       <View style={style.wrapper}>
         <Pressable
           onPress={() => setStatus("present" as any)}
@@ -37,6 +37,8 @@ export default function MarkScreen() {
         <Text style={style.text}>Logout</Text>
       </Pressable>
     </View>
+
+
   );
 }
 
